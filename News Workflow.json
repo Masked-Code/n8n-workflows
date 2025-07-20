@@ -1,0 +1,272 @@
+{
+  "name": "News Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "26137a8b-5021-47cd-b53d-26dd4bc2bf67",
+              "leftValue": "={{ $json.pubDate }}",
+              "rightValue": "={{ new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        16
+      ],
+      "id": "8b877d08-533e-4da4-8da9-a799cfe9b8a3",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        160,
+        224
+      ],
+      "id": "cede89a7-c99b-4d67-90ca-223e6a9e6bb7",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "url": "https://feed.infoq.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        -176
+      ],
+      "id": "27ab2d83-ccfb-4989-87b6-7e44d8468be1",
+      "name": "infoq Feed"
+    },
+    {
+      "parameters": {
+        "url": "https://dev.to/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        16
+      ],
+      "id": "7d6f62b2-613d-4b31-9cdf-b74edbf328b5",
+      "name": "dev.to Feed"
+    },
+    {
+      "parameters": {
+        "url": "https://realpython.com/atom.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        208
+      ],
+      "id": "409100d9-60f9-4f47-a29a-91941e662657",
+      "name": "realpython Feed"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -64
+      ],
+      "id": "4ea42daf-d5d5-4589-932d-126fdaf5b4c6",
+      "name": "Manual Execute"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        112
+      ],
+      "id": "4291e3c1-5395-4c6a-ae7d-08f602abb974",
+      "name": "Sunday Auto-Trigger"
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        160,
+        16
+      ],
+      "id": "6ee0707c-9c17-4f05-98d9-4f731e84c028",
+      "name": "AI Analyst"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        528,
+        16
+      ],
+      "id": "a7fc2154-18bf-4b36-94b7-c66bd1ed7884",
+      "name": "Discord Webook Messages",
+      "webhookId": "c5b50c84-6aaf-46c2-95e5-2f5b09a99830"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "infoq Feed": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "dev.to Feed": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "realpython Feed": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Execute": {
+      "main": [
+        [
+          {
+            "node": "infoq Feed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "dev.to Feed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "realpython Feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sunday Auto-Trigger": {
+      "main": [
+        [
+          {
+            "node": "infoq Feed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "dev.to Feed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "realpython Feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analyst": {
+      "main": [
+        [
+          {
+            "node": "Discord Webook Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5a7138e7-2a4a-42c0-bfe7-9ad42daa2825",
+  "meta": {
+    "instanceId": "a0e02f4815c2e060ef5777e2b3ce8f3f18d355d5b8691b4aa08a348f529d2d27"
+  },
+  "id": "ACsdISNLJMn9i2u2",
+  "tags": []
+}
